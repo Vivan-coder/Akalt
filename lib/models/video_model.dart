@@ -11,6 +11,7 @@ class VideoModel {
   final int comments;
   final int shares;
   final int orderClicks;
+  final int views;
   final double avgWatchTime;
   final List<String> tags;
   final String location; // "lat,lng"
@@ -31,6 +32,7 @@ class VideoModel {
     this.comments = 0,
     this.shares = 0,
     this.orderClicks = 0,
+    this.views = 0,
     this.avgWatchTime = 0.0,
     this.tags = const [],
     this.location = '',
@@ -53,6 +55,7 @@ class VideoModel {
       'comments': comments,
       'shares': shares,
       'orderClicks': orderClicks,
+      'views': views,
       'avgWatchTime': avgWatchTime,
       'tags': tags,
       'location': location,
@@ -76,6 +79,7 @@ class VideoModel {
       comments: map['comments'] ?? 0,
       shares: map['shares'] ?? 0,
       orderClicks: map['orderClicks'] ?? 0,
+      views: map['views'] ?? 0,
       avgWatchTime: (map['avgWatchTime'] ?? 0.0).toDouble(),
       tags: List<String>.from(map['tags'] ?? []),
       location: map['location'] ?? '',

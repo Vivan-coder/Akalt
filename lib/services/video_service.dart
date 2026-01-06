@@ -305,4 +305,44 @@ class VideoService {
     // Update score after order click
     await calculateAndSyncFeedScore(videoId);
   }
+
+  // Log Engagement
+  Future<void> logEngagement(String videoId, String type) async {
+    try {
+      // Get the video to find the restaurantId
+      final videoDoc = await _firestore.collection('videos').doc(videoId).get();
+      if (!videoDoc.exists) return;
+      final videoData = videoDoc.data();
+      if (videoData == null) return;
+
+      final restaurantId = videoData['restaurantId'];
+
+      // Log the event to a global analytics collection
+      await _firestore.collection('analytics').add({
+        'videoId': videoId,
+        'type': type, // 'view', 'like', 'order_click'
+        'restaurantId': restaurantId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Handle specific counters
+      if (type == 'view') {
+        await _firestore.collection('videos').doc(videoId).update({
+          'views': FieldValue.increment(1),
+        });
+      } else if (type == 'order_click') {
+        // Already handled by incrementOrderClicks, but if this method is called independently
+        // we might want to ensure we don't double count if the UI calls both.
+        // Assuming the UI calls logEngagement INSTEAD of incrementOrderClicks for generic tracking,
+        // or alongside it.
+        // For now, let's assume 'order_click' here is just for the log stream,
+        // and the actual counter increment happens in incrementOrderClicks.
+        // However, the instructions say "Create logEngagement... Types should include 'view', 'like', 'order_click'".
+        // It doesn't explicitly say "replace existing logic".
+        // Safe to just log the event here.
+      }
+    } catch (e) {
+      debugPrint('Error logging engagement: $e');
+    }
+  }
 }

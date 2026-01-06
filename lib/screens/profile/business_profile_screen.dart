@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/video_provider.dart';
+import '../../providers/analytics_provider.dart';
 import '../../models/video_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/restaurant_provider.dart';
@@ -32,6 +33,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
         final videosAsync = ref.watch(userVideosProvider(user.uid));
         final restaurantAsync = ref.watch(currentBusinessProvider);
 
+        // We need the restaurant ID to fetch analytics.
+        // Assuming user.uid corresponds to a business user who OWNS a restaurant.
+        // Or if 'currentBusinessProvider' returns the restaurant associated with the current user.
+
         return Scaffold(
           appBar: AppBar(
             title: Text(user.username),
@@ -57,6 +62,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               ref.invalidate(userDetailsProvider);
               ref.invalidate(currentBusinessProvider);
               ref.invalidate(userVideosProvider(user.uid));
+              // Also invalidate analytics if we had the ID
               // Wait for user details to reload
               await ref.read(userDetailsProvider.future);
             },
@@ -75,10 +81,12 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   restaurantAsync.when(
-                    data: (restaurant) => _AnalyticsGrid(
-                      restaurant: restaurant,
-                      videos: videosAsync.value ?? [],
-                    ),
+                    data: (restaurant) {
+                      if (restaurant == null) {
+                         return const Text('No restaurant profile found.');
+                      }
+                      return _AnalyticsSection(restaurant: restaurant);
+                    },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Text('Error loading analytics: $e'),
@@ -152,50 +160,54 @@ class _BusinessHeader extends StatelessWidget {
   }
 }
 
-class _AnalyticsGrid extends StatelessWidget {
-  final RestaurantModel? restaurant;
-  final List<VideoModel> videos;
+class _AnalyticsSection extends ConsumerWidget {
+  final RestaurantModel restaurant;
 
-  const _AnalyticsGrid({this.restaurant, this.videos = const []});
+  const _AnalyticsSection({required this.restaurant});
 
   @override
-  Widget build(BuildContext context) {
-    // Sum total likes as a placeholder for "Total Views" or general engagement
-    final totalLikes = videos.fold<int>(0, (sum, video) => sum + video.likes);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final analyticsAsync = ref.watch(restaurantAnalyticsProvider(restaurant.id));
 
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.5,
-      children: [
-        _AnalyticsCard(
-          title: 'Total Likes',
-          value: '$totalLikes',
-          icon: Icons.favorite,
-          color: Colors.red,
-        ),
-        _AnalyticsCard(
-          title: 'Order Clicks',
-          value: '${restaurant?.totalOrderClicks ?? 0}',
-          icon: Icons.shopping_bag,
-          color: Colors.green,
-        ),
-        _AnalyticsCard(
-          title: 'Followers',
-          value: '${restaurant?.followersCount ?? 0}',
-          icon: Icons.people,
-          color: Colors.blue,
-        ),
-        _AnalyticsCard(
-          title: 'Rating',
-          value: '${restaurant?.rating ?? 0.0}',
-          icon: Icons.star,
-          color: Colors.orange,
-        ),
-      ],
+    return analyticsAsync.when(
+      data: (stats) {
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _AnalyticsCard(
+              title: 'Total Views',
+              value: '${stats.totalViews}',
+              icon: Icons.visibility,
+              color: Colors.purple,
+            ),
+            _AnalyticsCard(
+              title: 'Order Clicks',
+              value: '${stats.totalOrderClicks}',
+              icon: Icons.shopping_bag,
+              color: Colors.green,
+            ),
+            _AnalyticsCard(
+              title: 'Followers',
+              value: '${restaurant.followersCount}',
+              icon: Icons.people,
+              color: Colors.blue,
+            ),
+            _AnalyticsCard(
+              title: 'Rating',
+              value: '${restaurant.rating}',
+              icon: Icons.star,
+              color: Colors.orange,
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error loading stats: $e'),
     );
   }
 }
