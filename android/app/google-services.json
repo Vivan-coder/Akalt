@@ -1,0 +1,29 @@
+{
+    "project_info": {
+        "project_number": "550085522202",
+        "project_id": "akalt-27d06",
+        "storage_bucket": "akalt-27d06.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:550085522202:android:b020a6ef24dd19cbacf2a3",
+                "android_client_info": {
+                    "package_name": "com.akalt.dev"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyAUF0d9d6krp9Fge-yFEp37wbT-wdJedlo"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

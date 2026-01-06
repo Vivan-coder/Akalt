@@ -1,0 +1,81 @@
+class VideoModel {
+  final String id;
+  final String videoUrl;
+  final String thumbnailUrl;
+  final String restaurantId;
+  final String restaurantName;
+  final String dishName;
+  final String userId;
+  final String username;
+  final int likes;
+  final int comments;
+  final int shares;
+  final int orderClicks;
+  final double avgWatchTime;
+  final List<String> tags;
+  final String location; // "lat,lng"
+  final DateTime createdAt;
+
+  VideoModel({
+    required this.id,
+    required this.videoUrl,
+    required this.thumbnailUrl,
+    required this.restaurantId,
+    required this.restaurantName,
+    required this.dishName,
+    required this.userId,
+    required this.username,
+    this.likes = 0,
+    this.comments = 0,
+    this.shares = 0,
+    this.orderClicks = 0,
+    this.avgWatchTime = 0.0,
+    this.tags = const [],
+    this.location = '',
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'videoUrl': videoUrl,
+      'thumbnailUrl': thumbnailUrl,
+      'restaurantId': restaurantId,
+      'restaurantName': restaurantName,
+      'dishName': dishName,
+      'userId': userId,
+      'username': username,
+      'likes': likes,
+      'comments': comments,
+      'shares': shares,
+      'orderClicks': orderClicks,
+      'avgWatchTime': avgWatchTime,
+      'tags': tags,
+      'location': location,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory VideoModel.fromMap(Map<String, dynamic> map) {
+    return VideoModel(
+      id: map['id'] ?? '',
+      videoUrl: map['videoUrl'] ?? '',
+      thumbnailUrl: map['thumbnailUrl'] ?? '',
+      restaurantId: map['restaurantId'] ?? '',
+      restaurantName: map['restaurantName'] ?? '',
+      dishName: map['dishName'] ?? '',
+      userId: map['userId'] ?? '',
+      username: map['username'] ?? '',
+      likes: map['likes'] ?? 0,
+      comments: map['comments'] ?? 0,
+      shares: map['shares'] ?? 0,
+      orderClicks: map['orderClicks'] ?? 0,
+      avgWatchTime: (map['avgWatchTime'] ?? 0.0).toDouble(),
+      tags: List<String>.from(map['tags'] ?? []),
+      location: map['location'] ?? '',
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'])
+          : DateTime.now(),
+    );
+  }
+}
