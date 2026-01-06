@@ -167,47 +167,45 @@ class _AnalyticsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final analyticsAsync = ref.watch(restaurantAnalyticsProvider(restaurant.id));
+    final analyticsList = ref.watch(restaurantAnalyticsProvider(restaurant.id));
 
-    return analyticsAsync.when(
-      data: (stats) {
-        return GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.5,
-          children: [
-            _AnalyticsCard(
-              title: 'Total Views',
-              value: '${stats.totalViews}',
-              icon: Icons.visibility,
-              color: Colors.purple,
-            ),
-            _AnalyticsCard(
-              title: 'Order Clicks',
-              value: '${stats.totalOrderClicks}',
-              icon: Icons.shopping_bag,
-              color: Colors.green,
-            ),
-            _AnalyticsCard(
-              title: 'Followers',
-              value: '${restaurant.followersCount}',
-              icon: Icons.people,
-              color: Colors.blue,
-            ),
-            _AnalyticsCard(
-              title: 'Rating',
-              value: '${restaurant.rating}',
-              icon: Icons.star,
-              color: Colors.orange,
-            ),
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Error loading stats: $e'),
+    // Calculate totals from the daily data
+    final totalViews = analyticsList.fold<int>(0, (sum, item) => sum + item.views);
+    final totalOrderClicks = analyticsList.fold<int>(0, (sum, item) => sum + item.clicks);
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.5,
+      children: [
+        _AnalyticsCard(
+          title: 'Total Views',
+          value: '$totalViews',
+          icon: Icons.visibility,
+          color: Colors.purple,
+        ),
+        _AnalyticsCard(
+          title: 'Order Clicks',
+          value: '$totalOrderClicks', // Use calculated clicks or fallback to restaurant model if desired, but here we use mock data
+          icon: Icons.shopping_bag,
+          color: Colors.green,
+        ),
+        _AnalyticsCard(
+          title: 'Followers',
+          value: '${restaurant.followersCount}',
+          icon: Icons.people,
+          color: Colors.blue,
+        ),
+        _AnalyticsCard(
+          title: 'Rating',
+          value: '${restaurant.rating}',
+          icon: Icons.star,
+          color: Colors.orange,
+        ),
+      ],
     );
   }
 }

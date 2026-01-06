@@ -1,49 +1,50 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/video_model.dart';
-import '../models/restaurant_model.dart';
 
-class AnalyticsStats {
-  final int totalViews;
-  final int totalOrderClicks;
+class AnalyticsData {
+  final DateTime date;
+  final int views;
+  final int clicks;
 
-  AnalyticsStats({
-    required this.totalViews,
-    required this.totalOrderClicks,
+  AnalyticsData({
+    required this.date,
+    required this.views,
+    required this.clicks,
   });
 }
 
-final restaurantAnalyticsProvider = FutureProvider.family<AnalyticsStats, String>((
-  ref,
-  restaurantId,
-) async {
-  final firestore = FirebaseFirestore.instance;
+class RestaurantAnalyticsNotifier extends StateNotifier<List<AnalyticsData>> {
+  final String restaurantId;
 
-  // 1. Get Total Order Clicks from Restaurant Model
-  // This is more efficient than summing up all videos every time, assuming it's kept in sync.
-  final restaurantDoc =
-      await firestore.collection('restaurants').doc(restaurantId).get();
-  int totalOrderClicks = 0;
-  if (restaurantDoc.exists) {
-    final restaurant = RestaurantModel.fromMap(restaurantDoc.data()!);
-    totalOrderClicks = restaurant.totalOrderClicks;
+  RestaurantAnalyticsNotifier(this.restaurantId) : super([]) {
+    _loadMockData();
   }
 
-  // 2. Get Total Views by summing views from all videos of this restaurant
-  // We have to query videos because we don't keep a running total on the restaurant model for views (yet).
-  final videosSnapshot = await firestore
-      .collection('videos')
-      .where('restaurantId', isEqualTo: restaurantId)
-      .get();
-
-  int totalViews = 0;
-  for (var doc in videosSnapshot.docs) {
-    final video = VideoModel.fromMap(doc.data());
-    totalViews += video.views;
+  void _loadMockData() {
+    final now = DateTime.now();
+    final List<AnalyticsData> mockData = List.generate(7, (index) {
+      final date = now.subtract(Duration(days: 6 - index));
+      // Generate some random numbers for mock data
+      return AnalyticsData(
+        date: date,
+        views: 100 + (index * 20) + (date.day * 5),
+        clicks: 10 + (index * 5) + (date.day),
+      );
+    });
+    state = mockData;
   }
 
-  return AnalyticsStats(
-    totalViews: totalViews,
-    totalOrderClicks: totalOrderClicks,
-  );
+  Future<void> refreshAnalytics() async {
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+    // In the future, this will fetch from Firestore
+    _loadMockData();
+  }
+}
+
+final restaurantAnalyticsProvider = StateNotifierProvider.family<
+  RestaurantAnalyticsNotifier,
+  List<AnalyticsData>,
+  String
+>((ref, restaurantId) {
+  return RestaurantAnalyticsNotifier(restaurantId);
 });
