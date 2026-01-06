@@ -15,6 +15,8 @@ class VideoModel {
   final List<String> tags;
   final String location; // "lat,lng"
   final DateTime createdAt;
+  final double feedScore;
+  final int saves;
 
   VideoModel({
     required this.id,
@@ -33,6 +35,8 @@ class VideoModel {
     this.tags = const [],
     this.location = '',
     required this.createdAt,
+    this.feedScore = 0.0,
+    this.saves = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -53,6 +57,8 @@ class VideoModel {
       'tags': tags,
       'location': location,
       'createdAt': createdAt.toIso8601String(),
+      'feedScore': feedScore,
+      'saves': saves,
     };
   }
 
@@ -76,6 +82,8 @@ class VideoModel {
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
+      feedScore: (map['feedScore'] ?? 0.0).toDouble(),
+      saves: map['saves'] ?? 0,
     );
   }
 }

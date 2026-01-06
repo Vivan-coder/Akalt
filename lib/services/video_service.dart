@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -55,8 +56,44 @@ class VideoService {
 
       // Save to Firestore
       await _firestore.collection('videos').doc(videoId).set(video.toMap());
+
+      // Initial feed score calculation
+      await calculateAndSyncFeedScore(videoId);
     } catch (e) {
       throw Exception('Failed to upload video: $e');
+    }
+  }
+
+  /// Calculates and updates the feed score for a video
+  Future<void> calculateAndSyncFeedScore(String videoId) async {
+    try {
+      final docSnapshot =
+          await _firestore.collection('videos').doc(videoId).get();
+      if (!docSnapshot.exists) return;
+
+      final data = docSnapshot.data();
+      if (data == null) return;
+
+      final video = VideoModel.fromMap(data);
+
+      // Base Score: (likes * 2) + (saves * 5) + (orderClicks * 10)
+      final double baseScore = (video.likes * 2.0) +
+          (video.saves * 5.0) +
+          (video.orderClicks * 10.0);
+
+      // Time Decay: 10% penalty for every 24 hours since createdAt
+      final hoursDiff = DateTime.now().difference(video.createdAt).inHours;
+      // Decay factor = 0.9 ^ (hours / 24)
+      final double decayFactor = pow(0.9, hoursDiff / 24.0).toDouble();
+
+      final double finalScore = baseScore * decayFactor;
+
+      await _firestore
+          .collection('videos')
+          .doc(videoId)
+          .update({'feedScore': finalScore});
+    } catch (e) {
+      debugPrint('Error calculating feed score: $e');
     }
   }
 
@@ -114,6 +151,19 @@ class VideoService {
         });
   }
 
+  // Fetch videos ordered by feed score
+  Stream<List<VideoModel>> getFeedVideos() {
+    return _firestore
+        .collection('videos')
+        .orderBy('feedScore', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return VideoModel.fromMap(doc.data());
+          }).toList();
+        });
+  }
+
   // Fetch videos by user ID
   Stream<List<VideoModel>> getUserVideos(String userId) {
     return _firestore
@@ -146,6 +196,39 @@ class VideoService {
         transaction.update(videoRef, {'likes': FieldValue.increment(1)});
       }
     });
+
+    // Update score after like toggle
+    await calculateAndSyncFeedScore(videoId);
+  }
+
+  // Toggle Save
+  Future<void> toggleSave(String videoId, String userId) async {
+    final videoRef = _firestore.collection('videos').doc(videoId);
+    final userRef = _firestore.collection('users').doc(userId);
+
+    await _firestore.runTransaction((transaction) async {
+      final userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) return;
+
+      final savedVideos = List<String>.from(userDoc.data()?['savedVideos'] ?? []);
+
+      if (savedVideos.contains(videoId)) {
+        // Unsave
+        transaction.update(userRef, {
+          'savedVideos': FieldValue.arrayRemove([videoId]),
+        });
+        transaction.update(videoRef, {'saves': FieldValue.increment(-1)});
+      } else {
+        // Save
+        transaction.update(userRef, {
+          'savedVideos': FieldValue.arrayUnion([videoId]),
+        });
+        transaction.update(videoRef, {'saves': FieldValue.increment(1)});
+      }
+    });
+
+    // Update score after save toggle
+    await calculateAndSyncFeedScore(videoId);
   }
 
   // Check if video is liked by user
@@ -218,5 +301,8 @@ class VideoService {
     await _firestore.collection('restaurants').doc(restaurantId).update({
       'totalOrderClicks': FieldValue.increment(1),
     });
+
+    // Update score after order click
+    await calculateAndSyncFeedScore(videoId);
   }
 }
