@@ -11,6 +11,7 @@ class UserModel {
   final List<String> likedVideos;
   final String location; // "lat,lng"
   final String role; // 'user' or 'business'
+  final String? fcmToken;
 
   UserModel({
     required this.uid,
@@ -25,6 +26,7 @@ class UserModel {
     this.likedVideos = const [],
     this.location = '',
     this.role = 'user',
+    this.fcmToken,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +43,7 @@ class UserModel {
       'likedVideos': likedVideos,
       'location': location,
       'role': role,
+      'fcmToken': fcmToken,
     };
   }
 
@@ -58,6 +61,7 @@ class UserModel {
       likedVideos: List<String>.from(map['likedVideos'] ?? []),
       location: map['location'] ?? '',
       role: map['role'] ?? 'user',
+      fcmToken: map['fcmToken'],
     );
   }
 }
