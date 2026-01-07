@@ -8,6 +8,7 @@ class UserModel {
   final List<String> favoriteTags;
   final List<String> watchHistory;
   final List<String> savedVideos;
+  final List<String> likedVideos;
   final String location; // "lat,lng"
   final String role; // 'user' or 'business'
 
@@ -21,6 +22,7 @@ class UserModel {
     this.favoriteTags = const [],
     this.watchHistory = const [],
     this.savedVideos = const [],
+    this.likedVideos = const [],
     this.location = '',
     this.role = 'user',
   });
@@ -36,6 +38,7 @@ class UserModel {
       'favoriteTags': favoriteTags,
       'watchHistory': watchHistory,
       'savedVideos': savedVideos,
+      'likedVideos': likedVideos,
       'location': location,
       'role': role,
     };
@@ -52,6 +55,7 @@ class UserModel {
       favoriteTags: List<String>.from(map['favoriteTags'] ?? []),
       watchHistory: List<String>.from(map['watchHistory'] ?? []),
       savedVideos: List<String>.from(map['savedVideos'] ?? []),
+      likedVideos: List<String>.from(map['likedVideos'] ?? []),
       location: map['location'] ?? '',
       role: map['role'] ?? 'user',
     );

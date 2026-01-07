@@ -2,9 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/user_service.dart';
 import '../models/user_model.dart';
 import 'auth_provider.dart';
+import 'video_provider.dart';
 
 final userServiceProvider = Provider<UserService>((ref) {
-  return UserService();
+  return UserService(ref.read(videoServiceProvider));
 });
 
 // Stream to check if current user is following target user

@@ -11,13 +11,29 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'comments_sheet.dart';
 import '../../providers/restaurant_provider.dart';
+import '../../providers/user_provider.dart';
+
+// Local StateProvider for optimistic UI
+final likeStateProvider = StateProvider.family<bool, String>((ref, videoId) {
+  return false; // Initial state will be overridden by watching isLikedProvider
+});
 
 // Provider to check if a video is liked by the current user
 final isLikedProvider = StreamProvider.family<bool, String>((ref, videoId) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value(false);
+
+  // Use user's likedVideos list for single-read check instead of subcollection stream if available?
+  // But streaming the subcollection is what was implemented before.
+  // The user model now has likedVideos.
+  // Let's stick to the existing stream for now as it's robust,
+  // OR switch to watching the user document.
+  // The instruction says "user's ID should be added to a likedVideos array in their user document for quick filtering".
+  // Optimistic UI means we need local state.
+
   return ref.watch(videoServiceProvider).isLiked(videoId, user.uid);
 });
+
 
 class VideoPlayerWidget extends ConsumerStatefulWidget {
   final VideoModel video;
@@ -74,11 +90,19 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
       );
       return;
     }
+
+    // Optimistic Update
+    final isLiked = ref.read(likeStateProvider(widget.video.id));
+    ref.read(likeStateProvider(widget.video.id).notifier).state = !isLiked;
+
     try {
+      // Use UserService instead of VideoService
       await ref
-          .read(videoServiceProvider)
+          .read(userServiceProvider)
           .toggleLike(widget.video.id, user.uid);
     } catch (e) {
+      // Revert on error
+      ref.read(likeStateProvider(widget.video.id).notifier).state = isLiked;
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -150,7 +174,16 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final isLikedAsync = ref.watch(isLikedProvider(widget.video.id));
-    final isLiked = isLikedAsync.value ?? false;
+
+    // Sync optimistic state with server state when it arrives
+    ref.listen<AsyncValue<bool>>(isLikedProvider(widget.video.id), (previous, next) {
+      next.whenData((liked) {
+        ref.read(likeStateProvider(widget.video.id).notifier).state = liked;
+      });
+    });
+
+    // Use local state for UI
+    final isLiked = ref.watch(likeStateProvider(widget.video.id));
 
     return Stack(
       children: [

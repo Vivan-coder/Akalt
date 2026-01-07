@@ -8,7 +8,7 @@ final videoServiceProvider = Provider<VideoService>((ref) {
 
 // Provider for all videos in the home feed
 final homeVideosProvider = StreamProvider<List<VideoModel>>((ref) {
-  return ref.watch(videoServiceProvider).getVideos();
+  return ref.watch(videoServiceProvider).getFeedVideos();
 });
 
 // Provider for videos related to a specific user (or business)
