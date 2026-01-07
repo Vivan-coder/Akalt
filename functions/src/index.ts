@@ -20,48 +20,24 @@ export const onNewVideo = functions.firestore
     }
 
     try {
-      // Query the followers sub-collection of that restaurant
-      const followersSnapshot = await db
-        .collection("restaurants")
-        .doc(restaurantId)
-        .collection("followers")
+      // Query the users collection where following array contains that restaurantId
+      const usersSnapshot = await db
+        .collection("users")
+        .where("following", "array-contains", restaurantId)
         .get();
 
-      if (followersSnapshot.empty) {
+      if (usersSnapshot.empty) {
         console.log("No followers found for restaurant", restaurantId);
         return;
       }
 
-      // Collect user IDs from the followers sub-collection
-      // Assuming the document ID in 'followers' is the user ID
-      const userIds = followersSnapshot.docs.map((doc) => doc.id);
-
-      // Fetch user documents to get FCM tokens
-      // Note: Firestore 'in' query supports up to 10 items.
-      // For scalability, we should process in batches or individually.
-      // Here we will fetch individually for simplicity in this context,
-      // but in production, batching is recommended.
-
       const tokens: string[] = [];
 
-      // Create an array of promises to fetch user data
-      const userPromises = userIds.map(async (userId) => {
-        const userDoc = await db.collection("users").doc(userId).get();
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            if (userData && userData.fcmToken) {
-                return userData.fcmToken as string;
-            }
+      usersSnapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.fcmToken) {
+          tokens.push(userData.fcmToken);
         }
-        return null;
-      });
-
-      // Wait for all fetches
-      const results = await Promise.all(userPromises);
-
-      // Filter out nulls
-      results.forEach((token) => {
-          if (token) tokens.push(token);
       });
 
       if (tokens.length === 0) {
@@ -73,8 +49,8 @@ export const onNewVideo = functions.firestore
       const payload: admin.messaging.MulticastMessage = {
         tokens: tokens,
         notification: {
-          title: `${restaurantName} just posted a new dish!`,
-          body: "Tap to see what's cooking.",
+          title: `Fresh from ${restaurantName}!`,
+          body: "A new dish has been posted. Tap to watch.",
         },
         data: {
           videoId: videoId,
@@ -85,9 +61,8 @@ export const onNewVideo = functions.firestore
       const response = await admin.messaging().sendEachForMulticast(payload);
       console.log("Notifications sent:", response.successCount);
       if (response.failureCount > 0) {
-          console.log("Failed notifications:", response.failureCount);
+        console.log("Failed notifications:", response.failureCount);
       }
-
     } catch (error) {
       console.error("Error sending notification:", error);
     }
