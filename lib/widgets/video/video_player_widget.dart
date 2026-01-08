@@ -111,57 +111,34 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     }
   }
 
-  Future<void> _handleOrder() async {
+  Future<void> _handleOrder(RestaurantModel restaurant) async {
     try {
-      // Fetch restaurant data to get order link
-      final restaurantsAsync = ref.read(restaurantsProvider);
-      await restaurantsAsync.when(
-        data: (restaurants) async {
-          final restaurant = restaurants.firstWhere(
-            (r) => r.id == widget.video.restaurantId,
-            orElse: () => restaurants.first,
-          );
+      // Check for Referral Links first (filtering out empty ones)
+      final validReferralLinks = Map<String, String>.from(restaurant.referralLinks)
+        ..removeWhere((key, value) => value.trim().isEmpty);
 
-          if (restaurant.orderLink != null &&
-              restaurant.orderLink!.isNotEmpty) {
-            final url = Uri.parse(restaurant.orderLink!);
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-              // Track order click
-              await ref
-                  .read(videoServiceProvider)
-                  .incrementOrderClicks(
-                    widget.video.id,
-                    widget.video.restaurantId,
-                  );
-            } else {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Could not open ordering link')),
-                );
-              }
-            }
-          } else {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Ordering not available for ${restaurant.name} yet',
-                  ),
-                ),
+      if (validReferralLinks.isNotEmpty) {
+        _showOrderOptions(context, restaurant, validReferralLinks);
+      } else if (restaurant.orderLink != null &&
+          restaurant.orderLink!.isNotEmpty) {
+        final url = Uri.parse(restaurant.orderLink!);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+          // Track order click
+          await ref
+              .read(videoServiceProvider)
+              .incrementOrderClicks(
+                widget.video.id,
+                widget.video.restaurantId,
               );
-            }
-          }
-        },
-        loading: () {},
-        error: (_, __) {
+        } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error loading restaurant data')),
+              const SnackBar(content: Text('Could not open ordering link')),
             );
           }
-        },
-      );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -171,9 +148,85 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     }
   }
 
+  void _showOrderOptions(BuildContext context, RestaurantModel restaurant, Map<String, String> links) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Order from ${restaurant.name}',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ...links.entries.map((entry) {
+                final platform = entry.key;
+                final url = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: _getPlatformColor(platform),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context); // Close sheet
+                        final uri = Uri.parse(url);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                          // Track order click
+                          await ref
+                              .read(videoServiceProvider)
+                              .incrementOrderClicks(
+                                widget.video.id,
+                                widget.video.restaurantId,
+                              );
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Could not open link'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Text('Order on ${_capitalize(platform)}'),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLikedAsync = ref.watch(isLikedProvider(widget.video.id));
+
+    // Watch restaurant data to determine if Order button should be shown
+    final restaurantAsync = ref.watch(restaurantByIdProvider(widget.video.restaurantId));
 
     // Sync optimistic state with server state when it arrives
     ref.listen<AsyncValue<bool>>(isLikedProvider(widget.video.id), (previous, next) {
@@ -302,26 +355,41 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                 },
               ),
               const SizedBox(height: 20),
-              // Order Button (New)
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+              // Order Button (Conditional)
+              restaurantAsync.when(
+                data: (restaurant) {
+                  if (restaurant == null) return const SizedBox.shrink();
+
+                  final hasReferralLinks = restaurant.referralLinks.values.any((link) => link.trim().isNotEmpty);
+                  final hasOrderLink = restaurant.orderLink != null && restaurant.orderLink!.isNotEmpty;
+
+                  if (!hasReferralLinks && !hasOrderLink) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: Colors.white,
-                  ),
-                  onPressed: _handleOrder,
-                ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => _handleOrder(restaurant),
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(), // Hide while loading
+                error: (_, __) => const SizedBox.shrink(), // Hide on error
               ),
             ],
           ),
