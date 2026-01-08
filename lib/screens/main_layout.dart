@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:akalt/theme/app_theme.dart';
 import 'package:akalt/providers/auth_provider.dart';
 import 'home/home_feed_screen.dart';
-import 'explore/explore_map_screen.dart';
+import 'explore/explore_screen.dart';
 import 'search/search_screen.dart';
 import 'profile/profile_screen.dart';
 import 'profile/business_profile_screen.dart';
@@ -28,7 +28,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         final isBusiness = user?.role == 'business';
         final screens = [
           const HomeFeedScreen(),
-          const ExploreMapScreen(),
+          const ExploreScreen(),
           const SearchScreen(),
           isBusiness ? const BusinessProfileScreen() : const ProfileScreen(),
         ];
