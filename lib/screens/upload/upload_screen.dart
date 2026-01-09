@@ -19,6 +19,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _captionController = TextEditingController();
   final _tagsController = TextEditingController();
+  final _priceController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
   String? _selectedRestaurantId;
@@ -29,6 +30,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   void dispose() {
     _captionController.dispose();
     _tagsController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -86,6 +88,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           .where((tag) => tag.isNotEmpty)
           .toList();
 
+      final price = double.tryParse(_priceController.text) ?? 0.0;
+
       await ref
           .read(videoServiceProvider)
           .uploadVideo(
@@ -96,6 +100,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
             tags: tags,
             restaurantId: restaurant.id,
             restaurantName: restaurant.name,
+            price: price,
           );
 
       if (mounted) {
@@ -209,6 +214,27 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a caption';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Price
+              TextFormField(
+                controller: _priceController,
+                decoration: const InputDecoration(
+                  labelText: 'Price (BHD)',
+                  hintText: 'e.g., 2.500',
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
                   }
                   return null;
                 },

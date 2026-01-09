@@ -22,6 +22,7 @@ class VideoService {
     required List<String> tags,
     required String restaurantId,
     required String restaurantName,
+    required double price,
   }) async {
     try {
       final String videoId = _uuid.v4();
@@ -52,6 +53,7 @@ class VideoService {
         username: username,
         tags: tags,
         createdAt: DateTime.now(),
+        price: price,
       );
 
       // Save to Firestore
