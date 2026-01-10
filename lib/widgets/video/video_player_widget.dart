@@ -363,29 +363,15 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                   final hasReferralLinks = restaurant.referralLinks.values.any((link) => link.trim().isNotEmpty);
                   final hasOrderLink = restaurant.orderLink != null && restaurant.orderLink!.isNotEmpty;
 
-                  if (!hasReferralLinks && !hasOrderLink) {
+                  if ((!hasReferralLinks && !hasOrderLink) || widget.video.price <= 0) {
                     return const SizedBox.shrink();
                   }
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.shopping_bag_outlined,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => _handleOrder(restaurant),
-                    ),
+                  return _buildAction(
+                    context,
+                    Icons.shopping_bag_outlined,
+                    'Order',
+                    onTap: () => _handleOrder(restaurant),
                   );
                 },
                 loading: () => const SizedBox.shrink(), // Hide while loading
