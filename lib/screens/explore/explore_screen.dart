@@ -117,9 +117,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                   labelStyle: TextStyle(
                     color: isSelected ? AppTheme.primaryColor : Colors.black,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -156,9 +154,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                   labelStyle: TextStyle(
                     color: isSelected ? AppTheme.primaryColor : Colors.black,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -185,31 +181,22 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   // Search Query
                   if (_searchQuery.isNotEmpty) {
                     final queryLower = _searchQuery.toLowerCase();
-                    final nameMatch = restaurant.name.toLowerCase().contains(
-                      queryLower,
-                    );
-                    final cuisineMatch = restaurant.cuisine
-                        .toLowerCase()
-                        .contains(queryLower);
+                    final nameMatch = restaurant.name.toLowerCase().contains(queryLower);
+                    final cuisineMatch = restaurant.cuisine.toLowerCase().contains(queryLower);
                     if (!nameMatch && !cuisineMatch) return false;
                   }
 
                   // Area Filter
                   if (_selectedArea != null) {
-                    if (!restaurant.address.contains(_selectedArea!))
-                      return false;
+                    if (!restaurant.address.contains(_selectedArea!)) return false;
                   }
 
                   // Category Filter
                   if (_selectedCategory != null) {
                     final categoryLower = _selectedCategory!.toLowerCase();
-                    final cuisineMatch = restaurant.cuisine
-                        .toLowerCase()
-                        .contains(categoryLower);
+                    final cuisineMatch = restaurant.cuisine.toLowerCase().contains(categoryLower);
                     // Also check tags if available
-                    final tagsMatch = restaurant.tags.any(
-                      (tag) => tag.toLowerCase().contains(categoryLower),
-                    );
+                    final tagsMatch = restaurant.tags.any((tag) => tag.toLowerCase().contains(categoryLower));
 
                     if (!cuisineMatch && !tagsMatch) return false;
                   }
@@ -274,15 +261,16 @@ class _RestaurantCard extends StatelessWidget {
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 150,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.restaurant,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                ),
+                errorBuilder:
+                    (_, __, ___) => Container(
+                      height: 150,
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.restaurant,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ),
               ),
             ),
             Padding(
