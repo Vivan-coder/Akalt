@@ -1,43 +1,97 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
-import '../models/restaurant_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import '../models/video_model.dart';
-import '../providers/restaurant_provider.dart';
-import '../providers/video_provider.dart';
+import '../models/restaurant_model.dart';
 
 class GeoSearchService {
-  final Ref _ref;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  GeoSearchService(this._ref);
+  /// Update video with geohash based on coordinates
+  Future<void> updateVideoGeohash(
+    String videoId,
+    double lat,
+    double lng,
+  ) async {
+    final GeoFirePoint geoFirePoint = GeoFirePoint(GeoPoint(lat, lng));
+    await _firestore.collection('videos').doc(videoId).update({
+      'geohash': geoFirePoint.geohash,
+      'latitude': lat,
+      'longitude': lng,
+    });
+  }
 
-  Future<List<VideoModel>> searchVideosNear(LatLng point, {double radiusKm = 2.0}) async {
-    // 1. Get all restaurants (using the existing provider)
-    final restaurants = await _ref.read(allRestaurantsProvider.future);
+  /// Update restaurant with geohash based on coordinates
+  Future<void> updateRestaurantGeohash(
+    String restaurantId,
+    double lat,
+    double lng,
+  ) async {
+    final GeoFirePoint geoFirePoint = GeoFirePoint(GeoPoint(lat, lng));
+    await _firestore.collection('restaurants').doc(restaurantId).update({
+      'geohash': geoFirePoint.geohash,
+      'latitude': lat,
+      'longitude': lng,
+    });
+  }
 
-    // 2. Filter restaurants within radius
-    final nearbyRestaurants = restaurants.where((restaurant) {
-      final distance = const Distance().as(
-        LengthUnit.Kilometer,
-        point,
-        LatLng(restaurant.latitude, restaurant.longitude),
-      );
-      return distance <= radiusKm;
-    }).toList();
+  /// Query videos within a given radius in kilometers
+  Stream<List<VideoModel>> getVideosWithinRadius({
+    required double lat,
+    required double lng,
+    double radiusInKm = 2.0,
+  }) {
+    final center = GeoFirePoint(GeoPoint(lat, lng));
+    final collectionReference = _firestore.collection('videos');
 
-    if (nearbyRestaurants.isEmpty) return [];
+    return GeoCollectionReference(collectionReference)
+        .subscribeWithin(
+          center: center,
+          radiusInKm: radiusInKm,
+          field: 'geohash',
+          geopointFrom: (data) {
+            final lat = (data['latitude'] as num).toDouble();
+            final lng = (data['longitude'] as num).toDouble();
+            return GeoPoint(lat, lng);
+          },
+        )
+        .map(
+          (docs) => docs
+              .map(
+                (doc) =>
+                    VideoModel.fromMap(doc.data()! as Map<String, dynamic>),
+              )
+              .toList(),
+        );
+  }
 
-    // 3. Get videos for these restaurants
-    // This is inefficient if we don't have a way to query videos by list of restaurant IDs.
-    // Ideally: db.collection('videos').where('restaurantId', whereIn: ids).get()
-    // For now, we will fetch all feed videos and filter.
-    final allVideos = await _ref.read(homeVideosProvider.future);
+  /// Query restaurants within a given radius in kilometers
+  Stream<List<RestaurantModel>> getRestaurantsWithinRadius({
+    required double lat,
+    required double lng,
+    double radiusInKm = 2.0,
+  }) {
+    final center = GeoFirePoint(GeoPoint(lat, lng));
+    final collectionReference = _firestore.collection('restaurants');
 
-    final restaurantIds = nearbyRestaurants.map((r) => r.id).toSet();
-
-    return allVideos.where((video) => restaurantIds.contains(video.restaurantId)).toList();
+    return GeoCollectionReference(collectionReference)
+        .subscribeWithin(
+          center: center,
+          radiusInKm: radiusInKm,
+          field: 'geohash',
+          geopointFrom: (data) {
+            final lat = (data['latitude'] as num).toDouble();
+            final lng = (data['longitude'] as num).toDouble();
+            return GeoPoint(lat, lng);
+          },
+        )
+        .map(
+          (docs) => docs
+              .map(
+                (doc) => RestaurantModel.fromMap(
+                  doc.data()! as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
+        );
   }
 }
-
-final geoSearchServiceProvider = Provider<GeoSearchService>((ref) {
-  return GeoSearchService(ref);
-});
