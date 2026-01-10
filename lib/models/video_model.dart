@@ -21,6 +21,7 @@ class VideoModel {
   final DateTime createdAt;
   final double feedScore;
   final int saves;
+  final double price;
 
   VideoModel({
     required this.id,
@@ -45,6 +46,7 @@ class VideoModel {
     required this.createdAt,
     this.feedScore = 0.0,
     this.saves = 0,
+    this.price = 0.0,
   });
 
   Map<String, dynamic> toMap() {
@@ -71,6 +73,7 @@ class VideoModel {
       'createdAt': createdAt.toIso8601String(),
       'feedScore': feedScore,
       'saves': saves,
+      'price': price,
     };
   }
 
@@ -100,6 +103,7 @@ class VideoModel {
           : DateTime.now(),
       feedScore: (map['feedScore'] ?? 0.0).toDouble(),
       saves: map['saves'] ?? 0,
+      price: (map['price'] ?? 0.0).toDouble(),
     );
   }
 }

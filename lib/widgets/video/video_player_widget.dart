@@ -460,16 +460,17 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(
-                    'BD 4.500', // Placeholder price
+                    '${widget.video.price.toStringAsFixed(3)} BHD',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
