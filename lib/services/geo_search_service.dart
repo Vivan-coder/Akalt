@@ -12,7 +12,7 @@ class GeoSearchService {
     double lat,
     double lng,
   ) async {
-    final GeoFirePoint geoFirePoint = GeoFirePoint(lat, lng);
+    final GeoFirePoint geoFirePoint = GeoFirePoint(GeoPoint(lat, lng));
     await _firestore.collection('videos').doc(videoId).update({
       'geohash': geoFirePoint.geohash,
       'latitude': lat,
@@ -26,7 +26,7 @@ class GeoSearchService {
     double lat,
     double lng,
   ) async {
-    final GeoFirePoint geoFirePoint = GeoFirePoint(lat, lng);
+    final GeoFirePoint geoFirePoint = GeoFirePoint(GeoPoint(lat, lng));
     await _firestore.collection('restaurants').doc(restaurantId).update({
       'geohash': geoFirePoint.geohash,
       'latitude': lat,
@@ -40,7 +40,7 @@ class GeoSearchService {
     required double lng,
     double radiusInKm = 2.0,
   }) {
-    final center = GeoFirePoint(lat, lng);
+    final center = GeoFirePoint(GeoPoint(lat, lng));
     final collectionReference = _firestore.collection('videos');
 
     return GeoCollectionReference(collectionReference)
@@ -70,7 +70,7 @@ class GeoSearchService {
     required double lng,
     double radiusInKm = 2.0,
   }) {
-    final center = GeoFirePoint(lat, lng);
+    final center = GeoFirePoint(GeoPoint(lat, lng));
     final collectionReference = _firestore.collection('restaurants');
 
     return GeoCollectionReference(collectionReference)

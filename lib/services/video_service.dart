@@ -308,6 +308,13 @@ class VideoService {
     await calculateAndSyncFeedScore(videoId);
   }
 
+  // Update Video Price
+  Future<void> updateVideoPrice(String videoId, double price) async {
+    await _firestore.collection('videos').doc(videoId).update({
+      'price': price,
+    });
+  }
+
   // Log Engagement
   Future<void> logEngagement(String videoId, String type) async {
     try {

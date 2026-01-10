@@ -8,6 +8,7 @@ import '../../models/video_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/restaurant_provider.dart';
 import '../../models/restaurant_model.dart';
+import 'business_dashboard_screen.dart';
 
 class BusinessProfileScreen extends ConsumerStatefulWidget {
   const BusinessProfileScreen({super.key});
@@ -41,6 +42,26 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
           appBar: AppBar(
             title: Text(user.username),
             actions: [
+              // Dashboard Button
+              restaurantAsync.when(
+                data: (restaurant) {
+                  if (restaurant == null) return const SizedBox.shrink();
+                  return IconButton(
+                    icon: const Icon(Icons.dashboard),
+                    tooltip: 'Dashboard',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BusinessDashboardScreen(restaurant: restaurant),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
               IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () {
