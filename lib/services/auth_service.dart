@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
-import '../models/restaurant_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -68,31 +67,7 @@ class AuthService {
             .collection('users')
             .doc(result.user!.uid)
             .set(newUser.toMap());
-        debugPrint('AuthService: Firestore user document created');
-
-        // Create initial restaurant document if business role
-        if (role == 'business') {
-          debugPrint('AuthService: Initializing restaurant template');
-          RestaurantModel initialRestaurant = RestaurantModel(
-            id: result.user!.uid,
-            name: username,
-            cuisine: 'Unknown',
-            rating: 0.0,
-            imageUrl: '',
-            address: '',
-            distance: 0.0,
-            latitude: 0.0,
-            longitude: 0.0,
-            whatsAppNumber: '',
-            talabatUrl: '',
-            jahezUrl: '',
-          );
-          await _firestore
-              .collection('restaurants')
-              .doc(result.user!.uid)
-              .set(initialRestaurant.toMap());
-          debugPrint('AuthService: Business profile template created');
-        }
+        debugPrint('AuthService: Firestore document created');
       }
 
       return result;

@@ -14,10 +14,7 @@ class VideoModel {
   final int views;
   final double avgWatchTime;
   final List<String> tags;
-  final String location; // "lat,lng" for legacy support
-  final double? latitude;
-  final double? longitude;
-  final String? geohash;
+  final String location; // "lat,lng"
   final DateTime createdAt;
   final double feedScore;
   final int saves;
@@ -40,9 +37,6 @@ class VideoModel {
     this.avgWatchTime = 0.0,
     this.tags = const [],
     this.location = '',
-    this.latitude,
-    this.longitude,
-    this.geohash,
     required this.createdAt,
     this.feedScore = 0.0,
     this.saves = 0,
@@ -67,9 +61,6 @@ class VideoModel {
       'avgWatchTime': avgWatchTime,
       'tags': tags,
       'location': location,
-      'latitude': latitude,
-      'longitude': longitude,
-      'geohash': geohash,
       'createdAt': createdAt.toIso8601String(),
       'feedScore': feedScore,
       'saves': saves,
@@ -95,9 +86,6 @@ class VideoModel {
       avgWatchTime: (map['avgWatchTime'] ?? 0.0).toDouble(),
       tags: List<String>.from(map['tags'] ?? []),
       location: map['location'] ?? '',
-      latitude: (map['latitude'] as num?)?.toDouble(),
-      longitude: (map['longitude'] as num?)?.toDouble(),
-      geohash: map['geohash'] as String?,
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),

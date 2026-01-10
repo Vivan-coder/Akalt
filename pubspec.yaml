@@ -38,11 +38,11 @@ dependencies:
   flutter_svg: ^2.2.2
   cached_network_image: ^3.4.1
   flutter_riverpod: ^3.0.3
-  firebase_core: any
+  firebase_core: ^4.2.1
   firebase_auth: ^6.1.2
-  cloud_firestore: any
+  cloud_firestore: ^6.1.0
   firebase_storage: ^13.0.4
-  firebase_messaging: any
+  firebase_messaging: ^15.1.0
   video_player: ^2.10.1
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
@@ -52,8 +52,6 @@ dependencies:
   video_thumbnail: ^0.5.3
   path_provider: ^2.1.1
   url_launcher: ^6.2.4
-  geoflutterfire_plus: ^0.0.34
-  fl_chart: ^1.1.1
 
 dev_dependencies:
   flutter_test:

@@ -89,18 +89,21 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UploadScreen()),
-              );
-            },
-            backgroundColor: AppTheme.primaryColor,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: isBusiness
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UploadScreen()),
+                    );
+                  },
+                  backgroundColor: AppTheme.primaryColor,
+                  child: const Icon(Icons.add, color: Colors.white),
+                )
+              : null,
+          floatingActionButtonLocation: isBusiness
+              ? FloatingActionButtonLocation.centerDocked
+              : null,
         );
       },
       loading: () =>

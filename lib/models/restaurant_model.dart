@@ -14,10 +14,6 @@ class RestaurantModel {
   final int totalOrderClicks;
   final String? orderLink; // URL to Talabat, Deliveroo, or direct ordering
   final String? orderPlatform; // 'talabat', 'deliveroo', 'direct', etc.
-  final String? geohash;
-  final String whatsAppNumber;
-  final String talabatUrl;
-  final String jahezUrl;
 
   RestaurantModel({
     required this.id,
@@ -35,10 +31,6 @@ class RestaurantModel {
     this.totalOrderClicks = 0,
     this.orderLink,
     this.orderPlatform,
-    this.geohash,
-    this.whatsAppNumber = '',
-    this.talabatUrl = '',
-    this.jahezUrl = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -58,10 +50,6 @@ class RestaurantModel {
       'totalOrderClicks': totalOrderClicks,
       'orderLink': orderLink,
       'orderPlatform': orderPlatform,
-      'geohash': geohash,
-      'whatsAppNumber': whatsAppNumber,
-      'talabatUrl': talabatUrl,
-      'jahezUrl': jahezUrl,
     };
   }
 
@@ -82,10 +70,6 @@ class RestaurantModel {
       totalOrderClicks: map['totalOrderClicks'] ?? 0,
       orderLink: map['orderLink'],
       orderPlatform: map['orderPlatform'],
-      geohash: map['geohash'] as String?,
-      whatsAppNumber: map['whatsAppNumber'] ?? '',
-      talabatUrl: map['talabatUrl'] ?? '',
-      jahezUrl: map['jahezUrl'] ?? '',
     );
   }
 }
