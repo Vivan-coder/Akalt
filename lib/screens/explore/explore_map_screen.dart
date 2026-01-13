@@ -19,22 +19,26 @@ class ExploreMapScreen extends ConsumerStatefulWidget {
 class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
   // Bahrain Center
   final LatLng _center = const LatLng(26.0667, 50.5577);
+  bool _isLoading = false;
 
   void _onMapTap(TapPosition tapPosition, LatLng point) {
     // Standard tap logic
   }
 
   void _onMapLongPress(TapPosition tapPosition, LatLng point) async {
-    final geoService = ref.read(geoSearchServiceProvider);
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Show loading indicator
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Searching for food nearby...'), duration: Duration(seconds: 1)),
-    );
+    final geoService = ref.read(geoSearchServiceProvider);
 
     final videos = await geoService.searchVideosNear(point);
 
     if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
 
     if (videos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,37 +147,50 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
     return Scaffold(
       body: restaurantsAsync.when(
         data: (restaurants) {
-          return FlutterMap(
-            options: MapOptions(
-              initialCenter: _center, // Bahrain
-              initialZoom: 11.0,
-              onTap: _onMapTap,
-              onLongPress: _onMapLongPress,
-            ),
+          return Stack(
             children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.akalt.dev',
+              FlutterMap(
+                options: MapOptions(
+                  initialCenter: _center, // Bahrain
+                  initialZoom: 11.0,
+                  onTap: _onMapTap,
+                  onLongPress: _onMapLongPress,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.akalt.dev',
+                  ),
+                  MarkerLayer(
+                    markers: restaurants.map((restaurant) {
+                      return Marker(
+                        point: LatLng(restaurant.latitude, restaurant.longitude),
+                        width: 40,
+                        height: 40,
+                        child: GestureDetector(
+                          onTap: () {
+                            _showRestaurantPreview(context, restaurant);
+                          },
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
-              MarkerLayer(
-                markers: restaurants.map((restaurant) {
-                  return Marker(
-                    point: LatLng(restaurant.latitude, restaurant.longitude),
-                    width: 40,
-                    height: 40,
-                    child: GestureDetector(
-                      onTap: () {
-                        _showRestaurantPreview(context, restaurant);
-                      },
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40,
-                      ),
+              if (_isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                ),
             ],
           );
         },
