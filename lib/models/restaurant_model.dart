@@ -14,6 +14,7 @@ class RestaurantModel {
   final int totalOrderClicks;
   final String? orderLink; // URL to Talabat, Deliveroo, or direct ordering
   final String? orderPlatform; // 'talabat', 'deliveroo', 'direct', etc.
+  final Map<String, String> referralLinks;
 
   RestaurantModel({
     required this.id,
@@ -31,6 +32,7 @@ class RestaurantModel {
     this.totalOrderClicks = 0,
     this.orderLink,
     this.orderPlatform,
+    this.referralLinks = const {},
   });
 
   Map<String, dynamic> toMap() {
@@ -50,6 +52,7 @@ class RestaurantModel {
       'totalOrderClicks': totalOrderClicks,
       'orderLink': orderLink,
       'orderPlatform': orderPlatform,
+      'referralLinks': referralLinks,
     };
   }
 
@@ -70,6 +73,7 @@ class RestaurantModel {
       totalOrderClicks: map['totalOrderClicks'] ?? 0,
       orderLink: map['orderLink'],
       orderPlatform: map['orderPlatform'],
+      referralLinks: Map<String, String>.from(map['referralLinks'] ?? {}),
     );
   }
 }

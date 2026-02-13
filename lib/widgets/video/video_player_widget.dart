@@ -23,17 +23,8 @@ final isLikedProvider = StreamProvider.family<bool, String>((ref, videoId) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value(false);
 
-  // Use user's likedVideos list for single-read check instead of subcollection stream if available?
-  // But streaming the subcollection is what was implemented before.
-  // The user model now has likedVideos.
-  // Let's stick to the existing stream for now as it's robust,
-  // OR switch to watching the user document.
-  // The instruction says "user's ID should be added to a likedVideos array in their user document for quick filtering".
-  // Optimistic UI means we need local state.
-
   return ref.watch(videoServiceProvider).isLiked(videoId, user.uid);
 });
-
 
 class VideoPlayerWidget extends ConsumerStatefulWidget {
   final VideoModel video;
@@ -96,7 +87,6 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     ref.read(likeStateProvider(widget.video.id).notifier).state = !isLiked;
 
     try {
-      // Use UserService instead of VideoService
       await ref
           .read(userServiceProvider)
           .toggleLike(widget.video.id, user.uid);
@@ -111,114 +101,22 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     }
   }
 
-  Future<void> _handleOrder(RestaurantModel restaurant) async {
-    try {
-      // Check for Referral Links first (filtering out empty ones)
-      final validReferralLinks = Map<String, String>.from(restaurant.referralLinks)
-        ..removeWhere((key, value) => value.trim().isEmpty);
-
-      if (validReferralLinks.isNotEmpty) {
-        _showOrderOptions(context, restaurant, validReferralLinks);
-      } else if (restaurant.orderLink != null &&
-          restaurant.orderLink!.isNotEmpty) {
-        final url = Uri.parse(restaurant.orderLink!);
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-          // Track order click
-          await ref
-              .read(videoServiceProvider)
-              .incrementOrderClicks(
-                widget.video.id,
-                widget.video.restaurantId,
-              );
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not open ordering link')),
-            );
-          }
-        }
-      }
-    } catch (e) {
+  Future<void> _launchOrderUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      // Track order click
+      await ref.read(videoServiceProvider).incrementOrderClicks(
+            widget.video.id,
+            widget.video.restaurantId,
+          );
+    } else {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open link')),
+        );
       }
     }
-  }
-
-  void _showOrderOptions(BuildContext context, RestaurantModel restaurant, Map<String, String> links) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Order from ${restaurant.name}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ...links.entries.map((entry) {
-                final platform = entry.key;
-                final url = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: _getPlatformColor(platform),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () async {
-                        Navigator.pop(context); // Close sheet
-                        final uri = Uri.parse(url);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                          // Track order click
-                          await ref
-                              .read(videoServiceProvider)
-                              .incrementOrderClicks(
-                                widget.video.id,
-                                widget.video.restaurantId,
-                              );
-                        } else {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Could not open link'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      child: Text('Order on ${_capitalize(platform)}'),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -304,10 +202,86 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
           ),
         ),
 
+        // Buttons (Foldable Safe)
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 120, left: 16, right: 16),
+              child: restaurantAsync.when(
+                data: (restaurant) {
+                  if (restaurant == null) return const SizedBox.shrink();
+
+                  final buttons = <Widget>[];
+
+                  // Order Now Button
+                  if (widget.video.price > 0 &&
+                      restaurant.orderLink != null &&
+                      restaurant.orderLink!.isNotEmpty) {
+                    buttons.add(
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => _launchOrderUrl(restaurant.orderLink!),
+                        icon: const Icon(Icons.shopping_bag_outlined),
+                        label: const Text('Order Now'),
+                      ),
+                    );
+                  }
+
+                  // WhatsApp Button
+                  if (restaurant.referralLinks.containsKey('whatsapp') &&
+                      restaurant.referralLinks['whatsapp']!.isNotEmpty) {
+                    buttons.add(
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => _launchOrderUrl(restaurant.referralLinks['whatsapp']!),
+                        icon: const Icon(Icons.chat), // Use a generic chat icon if Whatsapp not available
+                        label: const Text('WhatsApp'),
+                      ),
+                    );
+                  }
+
+                  // Talabat Button
+                  if (restaurant.referralLinks.containsKey('talabat') &&
+                      restaurant.referralLinks['talabat']!.isNotEmpty) {
+                    buttons.add(
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => _launchOrderUrl(restaurant.referralLinks['talabat']!),
+                        icon: const Icon(Icons.delivery_dining),
+                        label: const Text('Talabat'),
+                      ),
+                    );
+                  }
+
+                  if (buttons.isEmpty) return const SizedBox.shrink();
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: buttons,
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ),
+
         // Right Side Actions (Premium Look)
         Positioned(
           right: 16,
-          bottom: 120, // Raised slightly to clear bottom nav
+          bottom: 180, // Moved up to clear buttons
           child: Column(
             children: [
               const CircleAvatar(
@@ -354,29 +328,7 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                       .incrementShareCount(widget.video.id);
                 },
               ),
-              const SizedBox(height: 20),
-              // Order Button (Conditional)
-              restaurantAsync.when(
-                data: (restaurant) {
-                  if (restaurant == null) return const SizedBox.shrink();
-
-                  final hasReferralLinks = restaurant.referralLinks.values.any((link) => link.trim().isNotEmpty);
-                  final hasOrderLink = restaurant.orderLink != null && restaurant.orderLink!.isNotEmpty;
-
-                  if ((!hasReferralLinks && !hasOrderLink) || widget.video.price <= 0) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return _buildAction(
-                    context,
-                    Icons.shopping_bag_outlined,
-                    'Order',
-                    onTap: () => _handleOrder(restaurant),
-                  );
-                },
-                loading: () => const SizedBox.shrink(), // Hide while loading
-                error: (_, __) => const SizedBox.shrink(), // Hide on error
-              ),
+              // Removed old Order button
             ],
           ),
         ),
@@ -384,7 +336,7 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
         // Bottom Info
         Positioned(
           left: 16,
-          bottom: 100, // Raised to clear bottom nav
+          bottom: 180, // Moved up to clear buttons
           right: 80,
           child: GestureDetector(
             onTap: () {
