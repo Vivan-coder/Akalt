@@ -15,6 +15,7 @@ class RestaurantModel {
   final String? orderLink; // URL to Talabat, Deliveroo, or direct ordering
   final String? orderPlatform; // 'talabat', 'deliveroo', 'direct', etc.
   final Map<String, String> referralLinks;
+  final bool isVerified;
 
   RestaurantModel({
     required this.id,
@@ -33,6 +34,7 @@ class RestaurantModel {
     this.orderLink,
     this.orderPlatform,
     this.referralLinks = const {},
+    this.isVerified = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -53,6 +55,7 @@ class RestaurantModel {
       'orderLink': orderLink,
       'orderPlatform': orderPlatform,
       'referralLinks': referralLinks,
+      'isVerified': isVerified,
     };
   }
 
@@ -74,6 +77,7 @@ class RestaurantModel {
       orderLink: map['orderLink'],
       orderPlatform: map['orderPlatform'],
       referralLinks: Map<String, String>.from(map['referralLinks'] ?? {}),
+      isVerified: map['isVerified'] ?? false,
     );
   }
 }
