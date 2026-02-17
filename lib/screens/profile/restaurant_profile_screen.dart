@@ -45,7 +45,20 @@ class RestaurantProfileScreen extends ConsumerWidget {
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(restaurant.name),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(restaurant.name),
+                  if (restaurant.isVerified) ...[
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.verified,
+                      color: AppTheme.primaryColor,
+                      size: 16,
+                    ),
+                  ],
+                ],
+              ),
               background: Image.network(
                 restaurant.imageUrl,
                 fit: BoxFit.cover,

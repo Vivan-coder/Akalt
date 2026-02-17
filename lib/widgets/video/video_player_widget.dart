@@ -377,10 +377,17 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                           ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
-                      Icons.verified,
-                      color: AppTheme.primaryColor,
-                      size: 16,
+                    restaurantAsync.when(
+                      data: (restaurant) =>
+                          (restaurant != null && restaurant.isVerified)
+                              ? const Icon(
+                                  Icons.verified,
+                                  color: AppTheme.primaryColor,
+                                  size: 16,
+                                )
+                              : const SizedBox.shrink(),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
                   ],
                 ),

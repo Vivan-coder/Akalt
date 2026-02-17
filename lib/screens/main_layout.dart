@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:akalt/theme/app_theme.dart';
 import 'package:akalt/providers/auth_provider.dart';
+import 'package:akalt/providers/restaurant_provider.dart';
+import 'auth/verification_pending_screen.dart';
 import 'home/home_feed_screen.dart';
 import 'explore/explore_screen.dart';
 import 'search/search_screen.dart';
@@ -26,13 +28,44 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     return userDetailsAsync.when(
       data: (user) {
         final isBusiness = user?.role == 'business';
-        final screens = [
-          const HomeFeedScreen(),
-          const ExploreScreen(),
-          const SearchScreen(),
-          isBusiness ? const BusinessProfileScreen() : const ProfileScreen(),
-        ];
-        return Scaffold(
+
+        if (isBusiness) {
+          final businessAsync = ref.watch(currentBusinessProvider);
+          return businessAsync.when(
+            data: (restaurant) {
+              if (restaurant != null && !restaurant.isVerified) {
+                return const VerificationPendingScreen();
+              }
+              // If verified or restaurant data missing (handled elsewhere or assumed verified for now), continue
+              return _buildMainScaffold(context, isBusiness);
+            },
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, _) => Scaffold(
+              body: Center(child: Text('Error loading business profile: $error')),
+            ),
+          );
+        }
+
+        return _buildMainScaffold(context, isBusiness);
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) =>
+          Scaffold(body: Center(child: Text('Error: $error'))),
+    );
+  }
+
+  Widget _buildMainScaffold(BuildContext context, bool isBusiness) {
+    final screens = [
+      const HomeFeedScreen(),
+      const ExploreScreen(),
+      const SearchScreen(),
+      isBusiness ? const BusinessProfileScreen() : const ProfileScreen(),
+    ];
+
+    return Scaffold(
           extendBody: true,
           body: screens[_currentIndex],
           bottomNavigationBar: Container(
@@ -105,11 +138,5 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
               ? FloatingActionButtonLocation.centerDocked
               : null,
         );
-      },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, stack) =>
-          Scaffold(body: Center(child: Text('Error: $error'))),
-    );
   }
 }

@@ -8,7 +8,7 @@ import '../../models/video_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/restaurant_provider.dart';
 import '../../models/restaurant_model.dart';
-import 'business_dashboard_screen.dart';
+import '../business/dashboard_screen.dart';
 
 class BusinessProfileScreen extends ConsumerStatefulWidget {
   const BusinessProfileScreen({super.key});
