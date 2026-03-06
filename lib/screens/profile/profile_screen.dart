@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/video_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../theme/app_theme.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final String? userId; // If null, shows current user's profile
@@ -79,7 +80,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           error: (_, __) => const Text('Profile'),
         ),
         centerTitle: true,
-        actions: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: userAsync.when(
         data: (user) {

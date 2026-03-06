@@ -9,6 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/restaurant_provider.dart';
 import '../../models/restaurant_model.dart';
 import '../business/dashboard_screen.dart';
+import 'settings_screen.dart';
 
 class BusinessProfileScreen extends ConsumerStatefulWidget {
   const BusinessProfileScreen({super.key});
@@ -73,7 +74,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () {
-                  // Open settings/menu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  );
                 },
               ),
             ],

@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Colors
   static const Color primaryColor = Color(
-    0xFFFF4500,
-  ); // Sunset Spice Orange-Red
-  static const Color secondaryColor = Color(0xFFFF8C00); // Dark Orange
-  static const Color backgroundColor = Color(0xFF121212); // Rich Dark Grey
+    0xFFFF3B30,
+  ); // Electric Crimson
+  static const Color secondaryColor = Color(0xFFFFD700); // Gold
+  static const Color backgroundColor = Color(0xFF121212); // Midnight
   static const Color surfaceColor = Color(0xFF1E1E1E); // Slightly lighter grey
   static const Color errorColor = Color(0xFFCF6679);
   static const Color onPrimary = Colors.white;
