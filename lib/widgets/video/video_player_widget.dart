@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
@@ -220,14 +221,11 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                       restaurant.orderLink != null &&
                       restaurant.orderLink!.isNotEmpty) {
                     buttons.add(
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () => _launchOrderUrl(restaurant.orderLink!),
-                        icon: const Icon(Icons.shopping_bag_outlined),
-                        label: const Text('Order Now'),
+                      _buildGlassButton(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Order Now',
+                        onTap: () => _launchOrderUrl(restaurant.orderLink!),
+                        glowColor: AppTheme.primaryColor,
                       ),
                     );
                   }
@@ -236,14 +234,10 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                   if (restaurant.referralLinks.containsKey('whatsapp') &&
                       restaurant.referralLinks['whatsapp']!.isNotEmpty) {
                     buttons.add(
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () => _launchOrderUrl(restaurant.referralLinks['whatsapp']!),
-                        icon: const Icon(Icons.chat), // Use a generic chat icon if Whatsapp not available
-                        label: const Text('WhatsApp'),
+                      _buildGlassButton(
+                        icon: Icons.chat,
+                        label: 'WhatsApp',
+                        onTap: () => _launchOrderUrl(restaurant.referralLinks['whatsapp']!),
                       ),
                     );
                   }
@@ -252,22 +246,20 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                   if (restaurant.referralLinks.containsKey('talabat') &&
                       restaurant.referralLinks['talabat']!.isNotEmpty) {
                     buttons.add(
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () => _launchOrderUrl(restaurant.referralLinks['talabat']!),
-                        icon: const Icon(Icons.delivery_dining),
-                        label: const Text('Talabat'),
+                      _buildGlassButton(
+                        icon: Icons.delivery_dining,
+                        label: 'Talabat',
+                        onTap: () => _launchOrderUrl(restaurant.referralLinks['talabat']!),
                       ),
                     );
                   }
 
                   if (buttons.isEmpty) return const SizedBox.shrink();
 
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  return Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    alignment: WrapAlignment.center,
                     children: buttons,
                   );
                 },
@@ -281,15 +273,28 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
         // Right Side Actions (Premium Look)
         Positioned(
           right: 16,
-          bottom: 180, // Moved up to clear buttons
+          bottom: 220, // Moved up to clear buttons
           child: Column(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundImage: NetworkImage(
-                  'https://via.placeholder.com/150',
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(2), // Optional: border thickness
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.1),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 24,
+                      backgroundImage: NetworkImage(
+                        'https://via.placeholder.com/150',
+                      ),
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
                 ),
-                backgroundColor: AppTheme.surfaceColor,
               ),
               const SizedBox(height: 24),
               _buildAction(
@@ -336,7 +341,7 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
         // Bottom Info
         Positioned(
           left: 16,
-          bottom: 180, // Moved up to clear buttons
+          bottom: 220, // Moved up to clear buttons
           right: 80,
           child: GestureDetector(
             onTap: () {
@@ -424,6 +429,61 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildGlassButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? glowColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: glowColor != null
+            ? [
+                BoxShadow(
+                  color: glowColor.withValues(alpha: 0.4),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                )
+              ]
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Material(
+            color: Colors.white.withValues(alpha: 0.1),
+            child: InkWell(
+              onTap: onTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

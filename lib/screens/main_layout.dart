@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:akalt/theme/app_theme.dart';
 import 'package:akalt/providers/auth_provider.dart';
@@ -69,23 +70,24 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           extendBody: true,
           body: screens[_currentIndex],
           bottomNavigationBar: Container(
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(left: 32, right: 32, bottom: 24),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(24),
+              color: AppTheme.surfaceColor.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(32),
               child: BottomNavigationBar(
                 currentIndex: _currentIndex,
                 onTap: (index) {
+                  HapticFeedback.lightImpact();
                   setState(() {
                     _currentIndex = index;
                   });
