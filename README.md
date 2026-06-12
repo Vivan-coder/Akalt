@@ -1,16 +1,32 @@
-# akalt
+# Akalt 🌶️
 
-A new Flutter project.
+Akalt is a premium, video-first food discovery platform designed for the Bahraini market. It reimagines traditional text-heavy menus as an immersive, TikTok-style vertical video feed, allowing users to discover signature dishes from local restaurants and order or save them seamlessly.
 
-## Getting Started
+The application features a sleek, minimalist aesthetic built around a **Solid Black** backdrop and high-contrast **Apple Red** interactive elements.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Tech Stack & Architecture
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Frontend Framework:** Flutter `3.35.7` (Stable)
+- **Language:** Dart `3.9.2`
+- **State Management:** Riverpod (AsyncNotifier & StreamProviders)
+- **Backend Services:** Firebase Suite
+  - **Authentication:** Firebase Auth
+  - **Database:** Cloud Firestore (Optimized for `feedScore` ranking)
+  - **Storage:** Firebase Cloud Storage (`akalt-27d06.firebasestorage.app`)
+- **Video Playback:** Native `video_player` implementation with lifecycle handling.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🛠️ Project Structure
+
+```text
+lib/
+├── main.dart                 # App initialization & App Check guardrails
+├── models/                   # Immutable data representations (VideoModel, UserModel)
+├── services/                 # Firebase API layer (AuthService, VideoService)
+└── screens/                  # Feature-based UI architecture
+    ├── auth/                 # Login, Verification, and Landing interfaces
+    ├── feed/                 # TikTok-style vertical scrolling feed & video overlay
+    └── upload/               # Media selection and Cloud Storage ingestion
