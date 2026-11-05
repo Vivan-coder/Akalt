@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
+    }
+    // Fields any signed-in user may change (engagement counters / follow lists)
+    function onlyChanges(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin()
+        // follow/unfollow updates the other user's followers list
+        || (isSignedIn() && onlyChanges(['followers']));
+      allow delete: if isAdmin();
+    }
+
+    match /videos/{videoId} {
+      allow read: if true;
+      // Any signed-in account can post, but only as themselves
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid)
+        || (isSignedIn() && onlyChanges(
+              ['likes', 'saves', 'comments', 'shares', 'orderClicks', 'views', 'feedScore']));
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      match /likes/{likeId} {
+        allow read: if isSignedIn();
+        allow create, delete: if isOwner(likeId);
+      }
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      }
+    }
+
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow create: if isAdmin() || isOwner(restaurantId);
+      allow update: if isAdmin() || isOwner(restaurantId)
+        || (isSignedIn() && onlyChanges(['totalOrderClicks']));
+      allow delete: if isAdmin();
+
+      match /branches/{branchId} {
+        allow read: if true;
+        allow write: if isAdmin() || isOwner(restaurantId);
+      }
+    }
+
+    match /analytics/{logId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn();
+      allow update, delete: if false;
+    }
+    match /analytics_logs/{logId} {
+      allow create: if isSignedIn();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}
