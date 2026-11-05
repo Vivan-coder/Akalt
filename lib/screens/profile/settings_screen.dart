@@ -14,9 +14,7 @@ class SettingsScreen extends ConsumerWidget {
     final userDetailsAsync = ref.watch(userDetailsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: userDetailsAsync.when(
         data: (user) {
           final isBusiness = user?.role == 'business';
@@ -42,7 +40,9 @@ class SettingsScreen extends ConsumerWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => BusinessDashboardScreen(restaurant: restaurant),
+                                      builder: (_) => BusinessDashboardScreen(
+                                        restaurant: restaurant,
+                                      ),
                                     ),
                                   );
                                 },
@@ -53,7 +53,9 @@ class SettingsScreen extends ConsumerWidget {
                                 icon: Icons.restaurant_menu,
                                 onTap: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Menu Manager coming soon')),
+                                    const SnackBar(
+                                      content: Text('Menu Manager coming soon'),
+                                    ),
                                   );
                                 },
                               ),
@@ -62,7 +64,8 @@ class SettingsScreen extends ConsumerWidget {
                         }
                         return const SizedBox.shrink();
                       },
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (_, __) => const SizedBox.shrink(),
                     );
                   },
@@ -97,7 +100,9 @@ class SettingsScreen extends ConsumerWidget {
                     onTap: () async {
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) {
-                        Navigator.pop(context); // Optional, Auth state change handles root nav
+                        Navigator.pop(
+                          context,
+                        ); // Optional, Auth state change handles root nav
                       }
                     },
                   ),
@@ -175,7 +180,9 @@ class SettingsScreen extends ConsumerWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: color == null ? const Icon(Icons.chevron_right, color: Colors.grey) : null,
+      trailing: color == null
+          ? const Icon(Icons.chevron_right, color: Colors.grey)
+          : null,
       onTap: onTap,
     );
   }

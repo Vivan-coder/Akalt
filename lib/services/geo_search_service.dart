@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/restaurant_model.dart';
 import '../models/video_model.dart';
 import '../providers/restaurant_provider.dart';
 import '../providers/video_provider.dart';
@@ -10,7 +9,10 @@ class GeoSearchService {
 
   GeoSearchService(this._ref);
 
-  Future<List<VideoModel>> searchVideosNear(LatLng point, {double radiusKm = 2.0}) async {
+  Future<List<VideoModel>> searchVideosNear(
+    LatLng point, {
+    double radiusKm = 2.0,
+  }) async {
     // 1. Get all restaurants (using the existing provider)
     final restaurants = await _ref.read(allRestaurantsProvider.future);
 
@@ -34,7 +36,9 @@ class GeoSearchService {
 
     final restaurantIds = nearbyRestaurants.map((r) => r.id).toSet();
 
-    return allVideos.where((video) => restaurantIds.contains(video.restaurantId)).toList();
+    return allVideos
+        .where((video) => restaurantIds.contains(video.restaurantId))
+        .toList();
   }
 }
 

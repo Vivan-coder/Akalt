@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/video_provider.dart';
@@ -13,17 +14,21 @@ class HomeFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await ref.read(restaurantServiceProvider).seedRestaurants();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Restaurants seeded!')),
-            );
-          }
-        },
-        child: const Icon(Icons.add_business),
-      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      floatingActionButton: !kDebugMode
+          ? null
+          : FloatingActionButton.small(
+              heroTag: 'seed_fab',
+              onPressed: () async {
+                await ref.read(restaurantServiceProvider).seedRestaurants();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Restaurants seeded!')),
+                  );
+                }
+              },
+              child: const Icon(Icons.add_business),
+            ),
       body: videosAsync.when(
         data: (videos) {
           if (videos.isEmpty) {

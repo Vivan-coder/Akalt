@@ -44,7 +44,9 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
               body: Center(child: CircularProgressIndicator()),
             ),
             error: (error, _) => Scaffold(
-              body: Center(child: Text('Error loading business profile: $error')),
+              body: Center(
+                child: Text('Error loading business profile: $error'),
+              ),
             ),
           );
         }
@@ -67,78 +69,77 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     ];
 
     return Scaffold(
-          extendBody: true,
-          body: screens[_currentIndex],
-          bottomNavigationBar: Container(
-            margin: const EdgeInsets.only(left: 32, right: 32, bottom: 24),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceColor.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+      extendBody: true,
+      body: screens[_currentIndex],
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(left: 32, right: 32, bottom: 24),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BottomNavigationBar(
-                currentIndex: _currentIndex,
-                onTap: (index) {
-                  HapticFeedback.lightImpact();
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                selectedItemColor: AppTheme.primaryColor,
-                unselectedItemColor: Colors.grey,
-                showSelectedLabels: false,
-                showUnselectedLabels: false,
-                type: BottomNavigationBarType.fixed,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_rounded),
-                    activeIcon: Icon(Icons.home_rounded, size: 28),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.map_rounded),
-                    activeIcon: Icon(Icons.map_rounded, size: 28),
-                    label: 'Explore',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.search_rounded),
-                    activeIcon: Icon(Icons.search_rounded, size: 28),
-                    label: 'Search',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_rounded),
-                    activeIcon: Icon(Icons.person_rounded, size: 28),
-                    label: 'Profile',
-                  ),
-                ],
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              HapticFeedback.lightImpact();
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedItemColor: AppTheme.primaryColor,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_rounded),
+                activeIcon: Icon(Icons.home_rounded, size: 28),
+                label: 'Home',
               ),
-            ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.map_rounded),
+                activeIcon: Icon(Icons.map_rounded, size: 28),
+                label: 'Explore',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.search_rounded),
+                activeIcon: Icon(Icons.search_rounded, size: 28),
+                label: 'Search',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded),
+                activeIcon: Icon(Icons.person_rounded, size: 28),
+                label: 'Profile',
+              ),
+            ],
           ),
-          floatingActionButton: isBusiness
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const UploadScreen()),
-                    );
-                  },
-                  backgroundColor: AppTheme.primaryColor,
-                  child: const Icon(Icons.add, color: Colors.white),
-                )
-              : null,
-          floatingActionButtonLocation: isBusiness
-              ? FloatingActionButtonLocation.centerDocked
-              : null,
-        );
+        ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 88),
+        child: FloatingActionButton(
+          heroTag: 'upload_fab',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UploadScreen()),
+            );
+          },
+          backgroundColor: AppTheme.primaryColor,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+      ),
+    );
   }
 }

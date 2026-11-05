@@ -6,7 +6,6 @@ import '../../models/restaurant_model.dart';
 import '../profile/restaurant_profile_screen.dart';
 import '../../providers/restaurant_provider.dart';
 import '../../services/geo_search_service.dart';
-import '../../widgets/video/video_feed.dart';
 import 'location_feed_screen.dart';
 
 class ExploreMapScreen extends ConsumerStatefulWidget {
@@ -66,7 +65,11 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   'Nearby Eats (${videos.length})',
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Expanded(
@@ -101,7 +104,8 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
                               Image.network(
                                 video.thumbnailUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+                                errorBuilder: (_, __, ___) =>
+                                    Container(color: Colors.grey),
                               ),
                               Positioned(
                                 bottom: 8,
@@ -112,13 +116,19 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
                                   children: [
                                     Text(
                                       video.restaurantName,
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Text(
                                       video.dishName,
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -158,13 +168,17 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.akalt.dev',
                   ),
                   MarkerLayer(
                     markers: restaurants.map((restaurant) {
                       return Marker(
-                        point: LatLng(restaurant.latitude, restaurant.longitude),
+                        point: LatLng(
+                          restaurant.latitude,
+                          restaurant.longitude,
+                        ),
                         width: 40,
                         height: 40,
                         child: GestureDetector(
@@ -186,9 +200,7 @@ class _ExploreMapScreenState extends ConsumerState<ExploreMapScreen> {
                 Positioned.fill(
                   child: Container(
                     color: Colors.black.withValues(alpha: 0.3),
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    child: const Center(child: CircularProgressIndicator()),
                   ),
                 ),
             ],

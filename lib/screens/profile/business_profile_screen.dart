@@ -54,7 +54,8 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => BusinessDashboardScreen(restaurant: restaurant),
+                          builder: (_) =>
+                              BusinessDashboardScreen(restaurant: restaurant),
                         ),
                       );
                     },
@@ -108,7 +109,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                   restaurantAsync.when(
                     data: (restaurant) {
                       if (restaurant == null) {
-                         return const Text('No restaurant profile found.');
+                        return const Text('No restaurant profile found.');
                       }
                       return _AnalyticsSection(restaurant: restaurant);
                     },
@@ -195,8 +196,14 @@ class _AnalyticsSection extends ConsumerWidget {
     final analyticsList = ref.watch(restaurantAnalyticsProvider(restaurant.id));
 
     // Calculate totals from the daily data
-    final totalViews = analyticsList.fold<int>(0, (sum, item) => sum + item.views);
-    final totalOrderClicks = analyticsList.fold<int>(0, (sum, item) => sum + item.clicks);
+    final totalViews = analyticsList.fold<int>(
+      0,
+      (sum, item) => sum + item.views,
+    );
+    final totalOrderClicks = analyticsList.fold<int>(
+      0,
+      (sum, item) => sum + item.clicks,
+    );
 
     return GridView.count(
       shrinkWrap: true,
@@ -214,7 +221,8 @@ class _AnalyticsSection extends ConsumerWidget {
         ),
         _AnalyticsCard(
           title: 'Order Clicks',
-          value: '$totalOrderClicks', // Use calculated clicks or fallback to restaurant model if desired, but here we use mock data
+          value:
+              '$totalOrderClicks', // Use calculated clicks or fallback to restaurant model if desired, but here we use mock data
           icon: Icons.shopping_bag,
           color: Colors.green,
         ),
