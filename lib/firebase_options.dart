@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAUF0d9d6krp9Fge-yFEp37wbT-wdJedlo',
-    appId: '1:550085522202:android:b020a6ef24dd19cbacf2a3',
+    appId: '1:550085522202:android:044cc79a316985eeacf2a3',
     messagingSenderId: '550085522202',
     projectId: 'akalt-27d06',
     authDomain: 'akalt-27d06.firebaseapp.com',
