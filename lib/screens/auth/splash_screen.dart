@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
@@ -29,7 +30,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       // Add timeout to prevent infinite hang
       final user = await ref
           .read(authStateProvider.future)
-          .timeout(const Duration(seconds: 2));
+          .timeout(
+            const Duration(seconds: 10),
+            // Fall back to the persisted session instead of forcing a re-login
+            onTimeout: () => FirebaseAuth.instance.currentUser,
+          );
 
       if (!mounted) return;
       _navigate(user != null);

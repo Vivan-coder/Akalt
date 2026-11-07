@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 class AnalyticsData {
   final DateTime date;
@@ -41,10 +41,11 @@ class RestaurantAnalyticsNotifier extends StateNotifier<List<AnalyticsData>> {
   }
 }
 
-final restaurantAnalyticsProvider = StateNotifierProvider.family<
-  RestaurantAnalyticsNotifier,
-  List<AnalyticsData>,
-  String
->((ref, restaurantId) {
-  return RestaurantAnalyticsNotifier(restaurantId);
-});
+final restaurantAnalyticsProvider =
+    StateNotifierProvider.family<
+      RestaurantAnalyticsNotifier,
+      List<AnalyticsData>,
+      String
+    >((ref, restaurantId) {
+      return RestaurantAnalyticsNotifier(restaurantId);
+    });

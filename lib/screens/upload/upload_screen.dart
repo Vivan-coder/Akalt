@@ -82,6 +82,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
       final userDetails = ref.read(userDetailsProvider).value;
       final restaurant = restaurants.firstWhere(
         (r) => r.id == _selectedRestaurantId,
+        orElse: () => throw Exception('Selected restaurant not found'),
       );
       final tags = _tagsController.text
           .split(' ')
@@ -126,28 +127,39 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final restaurantsAsync = ref.watch(restaurantsProvider);
+    final isBusiness = ref.watch(userDetailsProvider).value?.role == 'business';
+    // Business accounts can only post for their own restaurant; regular users
+    // can tag any restaurant.
+    final AsyncValue<List<RestaurantModel>> restaurantsAsync = isBusiness
+        ? ref
+              .watch(currentBusinessProvider)
+              .whenData((r) => r == null ? <RestaurantModel>[] : [r])
+        : ref.watch(restaurantsProvider);
+    final availableRestaurants = restaurantsAsync.value;
+    if (_selectedRestaurantId == null &&
+        availableRestaurants != null &&
+        availableRestaurants.length == 1) {
+      _selectedRestaurantId = availableRestaurants.first.id;
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Post'),
         actions: [
-          restaurantsAsync.when(
-            data: (restaurants) => TextButton(
-              onPressed: _isUploading ? null : () => _uploadVideo(restaurants),
-              child: _isUploading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text(
-                      'Post',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+          TextButton(
+            onPressed: _isUploading || availableRestaurants == null
+                ? null
+                : () => _uploadVideo(availableRestaurants),
+            child: _isUploading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'Post',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
           ),
         ],
       ),
@@ -228,7 +240,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   hintText: 'e.g., 2.500',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a price';
@@ -257,7 +271,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                 data: (restaurants) {
                   if (restaurants.isEmpty) {
                     return const Text(
-                      'No restaurants found. Please contact admin.',
+                      'No restaurant available. Business accounts need a '
+                      'restaurant profile; otherwise contact admin.',
                     );
                   }
                   return DropdownButtonFormField<String>(

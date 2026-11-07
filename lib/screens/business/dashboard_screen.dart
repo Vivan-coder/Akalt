@@ -4,9 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/restaurant_model.dart';
 import '../../providers/analytics_provider.dart';
-import '../../providers/restaurant_provider.dart';
 import '../../providers/video_provider.dart';
-import '../../providers/user_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/video_model.dart';
 
@@ -16,10 +14,12 @@ class BusinessDashboardScreen extends ConsumerStatefulWidget {
   const BusinessDashboardScreen({super.key, required this.restaurant});
 
   @override
-  ConsumerState<BusinessDashboardScreen> createState() => _BusinessDashboardScreenState();
+  ConsumerState<BusinessDashboardScreen> createState() =>
+      _BusinessDashboardScreenState();
 }
 
-class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScreen> {
+class _BusinessDashboardScreenState
+    extends ConsumerState<BusinessDashboardScreen> {
   bool _isLoading = true;
 
   @override
@@ -37,17 +37,25 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
 
   @override
   Widget build(BuildContext context) {
-    final analyticsList = ref.watch(restaurantAnalyticsProvider(widget.restaurant.id));
+    final analyticsList = ref.watch(
+      restaurantAnalyticsProvider(widget.restaurant.id),
+    );
     final videosAsync = ref.watch(userVideosProvider(widget.restaurant.id));
 
     // Calculate totals
-    final totalViews = analyticsList.fold<int>(0, (sum, item) => sum + item.views);
-    final totalClicks = analyticsList.fold<int>(0, (sum, item) => sum + item.clicks);
+    final totalViews = analyticsList.fold<int>(
+      0,
+      (sum, item) => sum + item.views,
+    );
+    final totalClicks = analyticsList.fold<int>(
+      0,
+      (sum, item) => sum + item.clicks,
+    );
     // Proxy for interest (e.g. profile visits)
     final totalInterest = (totalViews / 5).round();
 
     return Scaffold(
-      backgroundColor: AppTheme.scaffoldBackgroundColor,
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('Dashboard'),
         backgroundColor: AppTheme.surfaceColor,
@@ -129,9 +137,9 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
             Text(
               'Engagement (Last 7 Days)',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
             _buildEngagementChart(analyticsList),
@@ -147,9 +155,9 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
             Text(
               'Manage Menu',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
             _buildManageMenu(videosAsync),
@@ -159,7 +167,12 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
     );
   }
 
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     if (_isLoading) {
       return Shimmer.fromColors(
         baseColor: Colors.grey[800]!,
@@ -259,10 +272,18 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
           ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)), // Hide dates for simplicity or implement custom formatting
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            bottomTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ), // Hide dates for simplicity or implement custom formatting
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           minX: 0,
@@ -317,7 +338,10 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.access_time_filled, color: AppTheme.primaryColor),
+            child: const Icon(
+              Icons.access_time_filled,
+              color: AppTheme.primaryColor,
+            ),
           ),
           const SizedBox(width: 16),
           const Expanded(
@@ -353,7 +377,12 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
     return videosAsync.when(
       data: (videos) {
         if (videos.isEmpty) {
-          return const Center(child: Text('No videos uploaded.', style: TextStyle(color: Colors.grey)));
+          return const Center(
+            child: Text(
+              'No videos uploaded.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
         return ListView.separated(
           shrinkWrap: true,
@@ -377,11 +406,21 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: Colors.grey),
+                    errorBuilder: (_, __, ___) =>
+                        Container(width: 60, height: 60, color: Colors.grey),
                   ),
                 ),
-                title: Text(video.dishName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text('${video.price.toStringAsFixed(3)} BHD', style: const TextStyle(color: AppTheme.primaryColor)),
+                title: Text(
+                  video.dishName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  '${video.price.toStringAsFixed(3)} BHD',
+                  style: const TextStyle(color: AppTheme.primaryColor),
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit, color: Colors.grey),
                   onPressed: () {
@@ -396,7 +435,10 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Error loading menu: $e', style: const TextStyle(color: Colors.red)),
+      error: (e, _) => Text(
+        'Error loading menu: $e',
+        style: const TextStyle(color: Colors.red),
+      ),
     );
   }
 }

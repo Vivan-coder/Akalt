@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:video_player/video_player.dart';
 import '../../models/video_model.dart';
 import '../../theme/app_theme.dart';
@@ -88,9 +89,7 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     ref.read(likeStateProvider(widget.video.id).notifier).state = !isLiked;
 
     try {
-      await ref
-          .read(userServiceProvider)
-          .toggleLike(widget.video.id, user.uid);
+      await ref.read(userServiceProvider).toggleLike(widget.video.id, user.uid);
     } catch (e) {
       // Revert on error
       ref.read(likeStateProvider(widget.video.id).notifier).state = isLiked;
@@ -107,28 +106,30 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
       // Track order click
-      await ref.read(videoServiceProvider).incrementOrderClicks(
-            widget.video.id,
-            widget.video.restaurantId,
-          );
+      await ref
+          .read(videoServiceProvider)
+          .incrementOrderClicks(widget.video.id, widget.video.restaurantId);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open link')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open link')));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLikedAsync = ref.watch(isLikedProvider(widget.video.id));
-
     // Watch restaurant data to determine if Order button should be shown
-    final restaurantAsync = ref.watch(restaurantByIdProvider(widget.video.restaurantId));
+    final restaurantAsync = ref.watch(
+      restaurantByIdProvider(widget.video.restaurantId),
+    );
 
     // Sync optimistic state with server state when it arrives
-    ref.listen<AsyncValue<bool>>(isLikedProvider(widget.video.id), (previous, next) {
+    ref.listen<AsyncValue<bool>>(isLikedProvider(widget.video.id), (
+      previous,
+      next,
+    ) {
       next.whenData((liked) {
         ref.read(likeStateProvider(widget.video.id).notifier).state = liked;
       });
@@ -237,7 +238,9 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                       _buildGlassButton(
                         icon: Icons.chat,
                         label: 'WhatsApp',
-                        onTap: () => _launchOrderUrl(restaurant.referralLinks['whatsapp']!),
+                        onTap: () => _launchOrderUrl(
+                          restaurant.referralLinks['whatsapp']!,
+                        ),
                       ),
                     );
                   }
@@ -249,7 +252,9 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                       _buildGlassButton(
                         icon: Icons.delivery_dining,
                         label: 'Talabat',
-                        onTap: () => _launchOrderUrl(restaurant.referralLinks['talabat']!),
+                        onTap: () => _launchOrderUrl(
+                          restaurant.referralLinks['talabat']!,
+                        ),
                       ),
                     );
                   }
@@ -280,11 +285,15 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.all(2), // Optional: border thickness
+                    padding: const EdgeInsets.all(
+                      2,
+                    ), // Optional: border thickness
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.1),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: const CircleAvatar(
                       radius: 24,
@@ -385,12 +394,12 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                     restaurantAsync.when(
                       data: (restaurant) =>
                           (restaurant != null && restaurant.isVerified)
-                              ? const Icon(
-                                  Icons.verified,
-                                  color: AppTheme.primaryColor,
-                                  size: 16,
-                                )
-                              : const SizedBox.shrink(),
+                          ? const Icon(
+                              Icons.verified,
+                              color: AppTheme.primaryColor,
+                              size: 16,
+                            )
+                          : const SizedBox.shrink(),
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
                     ),
@@ -447,7 +456,7 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
                   color: glowColor.withValues(alpha: 0.4),
                   blurRadius: 15,
                   spreadRadius: 2,
-                )
+                ),
               ]
             : null,
       ),
@@ -460,10 +469,15 @@ class _VideoPlayerWidgetState extends ConsumerState<VideoPlayerWidget> {
             child: InkWell(
               onTap: onTap,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

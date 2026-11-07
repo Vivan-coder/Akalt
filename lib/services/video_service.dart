@@ -69,8 +69,10 @@ class VideoService {
   /// Calculates and updates the feed score for a video
   Future<void> calculateAndSyncFeedScore(String videoId) async {
     try {
-      final docSnapshot =
-          await _firestore.collection('videos').doc(videoId).get();
+      final docSnapshot = await _firestore
+          .collection('videos')
+          .doc(videoId)
+          .get();
       if (!docSnapshot.exists) return;
 
       final data = docSnapshot.data();
@@ -79,7 +81,8 @@ class VideoService {
       final video = VideoModel.fromMap(data);
 
       // Base Score: (likes * 2) + (saves * 5) + (orderClicks * 10)
-      final double baseScore = (video.likes * 2.0) +
+      final double baseScore =
+          (video.likes * 2.0) +
           (video.saves * 5.0) +
           (video.orderClicks * 10.0);
 
@@ -90,10 +93,9 @@ class VideoService {
 
       final double finalScore = baseScore * decayFactor;
 
-      await _firestore
-          .collection('videos')
-          .doc(videoId)
-          .update({'feedScore': finalScore});
+      await _firestore.collection('videos').doc(videoId).update({
+        'feedScore': finalScore,
+      });
     } catch (e) {
       debugPrint('Error calculating feed score: $e');
     }
@@ -212,7 +214,9 @@ class VideoService {
       final userDoc = await transaction.get(userRef);
       if (!userDoc.exists) return;
 
-      final savedVideos = List<String>.from(userDoc.data()?['savedVideos'] ?? []);
+      final savedVideos = List<String>.from(
+        userDoc.data()?['savedVideos'] ?? [],
+      );
 
       if (savedVideos.contains(videoId)) {
         // Unsave
@@ -310,9 +314,7 @@ class VideoService {
 
   // Update Video Price
   Future<void> updateVideoPrice(String videoId, double price) async {
-    await _firestore.collection('videos').doc(videoId).update({
-      'price': price,
-    });
+    await _firestore.collection('videos').doc(videoId).update({'price': price});
   }
 
   // Log Engagement

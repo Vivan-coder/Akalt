@@ -2,9 +2,13 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:akalt/providers/video_provider.dart';
+import 'package:akalt/providers/auth_provider.dart';
+import 'package:akalt/providers/restaurant_provider.dart';
 import 'package:akalt/screens/main_layout.dart';
 import 'package:akalt/screens/home/home_feed_screen.dart';
-import 'package:akalt/screens/explore/explore_map_screen.dart';
+import 'package:akalt/screens/explore/explore_screen.dart';
 import 'package:akalt/screens/search/search_screen.dart';
 import 'package:akalt/screens/profile/profile_screen.dart';
 
@@ -15,29 +19,41 @@ void main() {
 
   testWidgets('MainLayout navigation test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MaterialApp(home: MainLayout()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeVideosProvider.overrideWith((ref) => Stream.value([])),
+          authStateProvider.overrideWith((ref) => Stream.value(null)),
+          userDetailsProvider.overrideWith((ref) => Stream.value(null)),
+          allRestaurantsProvider.overrideWith((ref) async => []),
+        ],
+        child: const MaterialApp(home: MainLayout()),
+      ),
+    );
+
+    await tester.pump();
 
     // Verify that HomeFeedScreen is initially displayed
     expect(find.byType(HomeFeedScreen), findsOneWidget);
-    expect(find.byType(ExploreMapScreen), findsNothing);
+    expect(find.byType(ExploreScreen), findsNothing);
 
     // Tap on the Explore icon
-    await tester.tap(find.text('Explore'));
+    await tester.tap(find.byIcon(Icons.map_rounded));
     await tester.pumpAndSettle();
 
-    // Verify that ExploreMapScreen is displayed
-    expect(find.byType(ExploreMapScreen), findsOneWidget);
+    // Verify that ExploreScreen is displayed
+    expect(find.byType(ExploreScreen), findsOneWidget);
     expect(find.byType(HomeFeedScreen), findsNothing);
 
     // Tap on the Search icon
-    await tester.tap(find.text('Search'));
+    await tester.tap(find.byIcon(Icons.search_rounded));
     await tester.pumpAndSettle();
 
     // Verify that SearchScreen is displayed
     expect(find.byType(SearchScreen), findsOneWidget);
 
     // Tap on the Profile icon
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.byIcon(Icons.person_rounded));
     await tester.pumpAndSettle();
 
     // Verify that ProfileScreen is displayed
